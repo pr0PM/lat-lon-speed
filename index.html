@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Metadata -->
+    <title>Geo-Speed Navigator | Lat-Lon Speed, Distance & Time Calculator</title>
+    <meta name="description"
+        content="Calculate average speed and distance between two GPS coordinates instantly using the Haversine formula. Supports Google Maps, OpenStreetMap, and DMS format. High-precision geospatial tool.">
+    <meta name="keywords"
+        content="latitude longitude distance calculator, GPS distance calculator, haversine formula calculator, speed distance time calculator, calculate speed from coordinates, average speed calculator, point to point distance, geospatial speed tool, travel speed calculator">
+
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #111827;
+            --border: #e2e8f0;
+            --input-bg: #f8fafc;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --card-bg: #ffffff;
+            --muted: #64748b;
+            --success: #10b981;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #f1f5f9;
+            --border: #334155;
+            --input-bg: #1e293b;
+            --card-bg: #1e293b;
+            --muted: #94a3b8;
+            --accent: #60a5fa;
+            --accent-hover: #93c5fd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-small {
+            cursor: pointer;
+            padding: 6px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-small:hover {
+            border-color: var(--accent);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .point-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .point-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .point-header h2 {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+        }
+
+        .map-links {
+            display: flex;
+            gap: 8px;
+            font-size: 0.65rem;
+        }
+
+        .map-links a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .map-links a:hover {
+            text-decoration: underline;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 8px;
+        }
+
+        label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        input {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .results-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-dashboard {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .result-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .res-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .res-unit {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .meta-info {
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .route-actions {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            font-size: 0.8rem;
+        }
+
+        .route-actions a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .bottom-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+    <div class="app-container">
+        <header>
+            <h1>Geo-Speed Navigator</h1>
+            <div class="header-actions">
+                <button class="btn-small" onclick="setRandom()">Random Example</button>
+                <button class="btn-small" id="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <div class="input-section">
+                <!-- Point A -->
+                <div class="point-box">
+                    <div class="point-header">
+                        <h2>Point A</h2>
+                        <div class="map-links">
+                            <span>Open in:</span>
+                            <a href="#" id="a-gmaps" target="_blank">Google Maps</a>
+                            <a href="#" id="a-osm" target="_blank">OSM</a>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Latitude</label>
+                            <input type="text" id="lat1" value="40.7128" oninput="calculate()">
+                        </div>
+                        <div class="field">
+                            <label>Longitude</label>
+                            <input type="text" id="lon1" value="-74.0060" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Timestamp</label>
+                        <input type="text" id="t1" oninput="calculate()">
+                    </div>
+                </div>
+
+                <!-- Point B -->
+                <div class="point-box">
+                    <div class="point-header">
+                        <h2>Point B</h2>
+                        <div class="map-links">
+                            <span>Open in:</span>
+                            <a href="#" id="b-gmaps" target="_blank">Google Maps</a>
+                            <a href="#" id="b-osm" target="_blank">OSM</a>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Latitude</label>
+                            <input type="text" id="lat2" value="34.0522" oninput="calculate()">
+                        </div>
+                        <div class="field">
+                            <label>Longitude</label>
+                            <input type="text" id="lon2" value="-118.2437" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Timestamp</label>
+                        <input type="text" id="t2" oninput="calculate()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="result-dashboard">
+                    <div class="result-item">
+                        <span class="res-value" id="val-kmh">---</span>
+                        <span class="res-unit">Kilometers / Hour</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="res-value" id="val-mph">---</span>
+                        <span class="res-unit">Miles / Hour</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="res-value" id="val-ms">---</span>
+                        <span class="res-unit">Meters / Second</span>
+                    </div>
+
+                    <div class="meta-info" id="meta-display">Results will update instantly.</div>
+
+                    <div class="route-actions">
+                        <span>View Route:</span>
+                        <a href="#" id="route-gmaps" target="_blank">Google Maps</a>
+                        <a href="#" id="route-osm" target="_blank">OpenStreetMap</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const current = body.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', next);
+            document.getElementById('theme-toggle').innerText = next === 'dark' ? 'Light Mode' : 'Dark Mode';
+            localStorage.setItem('geo-theme', next);
+        }
+
+        const savedTheme = localStorage.getItem('geo-theme') || 'dark';
+        document.body.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-toggle').innerText = savedTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+
+        function setRandom() {
+            // Pick a base coordinate
+            const baseLat = Math.random() * 180 - 90;
+            const baseLon = Math.random() * 360 - 180;
+
+            // Helper to stay in same quadrant with a small variance
+            const getOffset = () => (Math.random() * 30 + 5); // 5 to 35 degrees away
+
+            let lat2 = baseLat + (Math.random() > 0.5 ? getOffset() : -getOffset());
+            let lon2 = baseLon + (Math.random() > 0.5 ? getOffset() : -getOffset());
+
+            // Force same quadrant (same sign)
+            if (Math.sign(lat2) !== Math.sign(baseLat)) lat2 = baseLat / 2;
+            if (Math.sign(lon2) !== Math.sign(baseLon)) lon2 = baseLon / 2;
+
+            // Clamp latitude
+            lat2 = Math.max(-90, Math.min(90, lat2));
+            lon2 = Math.max(-180, Math.min(180, lon2));
+
+            document.getElementById('lat1').value = baseLat.toFixed(6);
+            document.getElementById('lon1').value = baseLon.toFixed(6);
+            document.getElementById('lat2').value = lat2.toFixed(6);
+            document.getElementById('lon2').value = lon2.toFixed(6);
+
+            const now = new Date();
+            const randomHours = Math.floor(Math.random() * 24) + 1;
+            const past = new Date(now.getTime() - (randomHours * 60 * 60 * 1000));
+
+            document.getElementById('t1').value = past.toLocaleString();
+            document.getElementById('t2').value = now.toLocaleString();
+
+            calculate();
+        }
+
+        window.onload = () => {
+            const now = new Date();
+            const hourAgo = new Date(now.getTime() - 3600000);
+            document.getElementById('t1').value = hourAgo.toLocaleString();
+            document.getElementById('t2').value = now.toLocaleString();
+            calculate();
+        };
+
+        function parseCoordinate(val) {
+            const dmsRegex = /^(\d+)°?\s*(\d+)'?\s*(\d+(?:\.\d+)?)?"?\s*([NSEW])$/i;
+            const match = val.trim().match(dmsRegex);
+            if (match) {
+                let deg = parseFloat(match[1]);
+                let min = parseFloat(match[2]) || 0;
+                let sec = parseFloat(match[3]) || 0;
+                let dir = match[4].toUpperCase();
+                let dd = deg + min / 60 + sec / 3600;
+                if (dir === 'S' || dir === 'W') dd = -dd;
+                return dd;
+            }
+            return parseFloat(val);
+        }
+
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function updateMapLinks(lat1, lon1, lat2, lon2) {
+            const urlA_GM = `https://www.google.com/maps?q=${lat1},${lon1}`;
+            const urlA_OSM = `https://www.openstreetmap.org/?mlat=${lat1}&mlon=${lon1}#map=15/${lat1}/${lon1}`;
+            const urlB_GM = `https://www.google.com/maps?q=${lat2},${lon2}`;
+            const urlB_OSM = `https://www.openstreetmap.org/?mlat=${lat2}&mlon=${lon2}#map=15/${lat2}/${lon2}`;
+            const urlRoute_GM = `https://www.google.com/maps/dir/${lat1},${lon1}/${lat2},${lon2}`;
+            const urlRoute_OSM = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${lat1}%2C${lon1}%3B${lat2}%2C${lon2}`;
+
+            document.getElementById('a-gmaps').href = urlA_GM;
+            document.getElementById('a-osm').href = urlA_OSM;
+            document.getElementById('b-gmaps').href = urlB_GM;
+            document.getElementById('b-osm').href = urlB_OSM;
+            document.getElementById('route-gmaps').href = urlRoute_GM;
+            document.getElementById('route-osm').href = urlRoute_OSM;
+        }
+
+        function calculate() {
+            const vLat1 = document.getElementById('lat1').value;
+            const vLon1 = document.getElementById('lon1').value;
+            const vLat2 = document.getElementById('lat2').value;
+            const vLon2 = document.getElementById('lon2').value;
+
+            const l1 = parseCoordinate(vLat1);
+            const n1 = parseCoordinate(vLon1);
+            const l2 = parseCoordinate(vLat2);
+            const n2 = parseCoordinate(vLon2);
+            const time1 = new Date(document.getElementById('t1').value);
+            const time2 = new Date(document.getElementById('t2').value);
+
+            if (isNaN(l1) || isNaN(n1) || isNaN(l2) || isNaN(n2)) {
+                document.getElementById('meta-display').innerText = "Invalid coordinates.";
+                return;
+            }
+
+            updateMapLinks(l1, n1, l2, n2);
+
+            if (isNaN(time1.getTime()) || isNaN(time2.getTime())) {
+                document.getElementById('meta-display').innerText = "Enter valid timestamps for speed.";
+                return;
+            }
+
+            const distanceKm = haversine(l1, n1, l2, n2);
+            const timeDiffMs = Math.abs(time2 - time1);
+            const hours = timeDiffMs / (1000 * 60 * 60);
+
+            if (hours === 0) {
+                document.getElementById('meta-display').innerText = "Timestamps are identical.";
+                return;
+            }
+
+            const kmh = distanceKm / hours;
+            const mph = kmh * 0.621371;
+            const ms = (distanceKm * 1000) / (hours * 3600);
+
+            document.getElementById('val-kmh').innerText = kmh.toFixed(2);
+            document.getElementById('val-mph').innerText = mph.toFixed(2);
+            document.getElementById('val-ms').innerText = ms.toFixed(2);
+
+            document.getElementById('meta-display').innerText =
+                `${distanceKm.toFixed(2)} km in ${hours.toFixed(2)}h`;
+        }
+    </script>
+</body>
+
+</html>
