@@ -383,12 +383,19 @@
             document.getElementById('lat2').value = lat2.toFixed(6);
             document.getElementById('lon2').value = lon2.toFixed(6);
 
-            const now = new Date();
-            const randomHours = Math.floor(Math.random() * 24) + 1;
-            const past = new Date(now.getTime() - (randomHours * 60 * 60 * 1000));
+            const formatDate = (date) => {
+                const pad = (num) => String(num).padStart(2, '0');
+                const y = date.getFullYear();
+                const m = pad(date.getMonth() + 1);
+                const d = pad(date.getDate());
+                const h = pad(date.getHours());
+                const min = pad(date.getMinutes());
+                const s = pad(date.getSeconds());
+                return `${y}-${m}-${d} ${h}:${min}:${s}`;
+            };
 
-            document.getElementById('t1').value = past.toLocaleString();
-            document.getElementById('t2').value = now.toLocaleString();
+            document.getElementById('t1').value = formatDate(past);
+            document.getElementById('t2').value = formatDate(now);
 
             calculate();
         }
@@ -396,8 +403,14 @@
         window.onload = () => {
             const now = new Date();
             const hourAgo = new Date(now.getTime() - 3600000);
-            document.getElementById('t1').value = hourAgo.toLocaleString();
-            document.getElementById('t2').value = now.toLocaleString();
+
+            const formatDate = (date) => {
+                const pad = (num) => String(num).padStart(2, '0');
+                return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+            };
+
+            document.getElementById('t1').value = formatDate(hourAgo);
+            document.getElementById('t2').value = formatDate(now);
             calculate();
         };
 
@@ -453,8 +466,15 @@
             const n1 = parseCoordinate(vLon1);
             const l2 = parseCoordinate(vLat2);
             const n2 = parseCoordinate(vLon2);
-            const time1 = new Date(document.getElementById('t1').value);
-            const time2 = new Date(document.getElementById('t2').value);
+            const cleanTime = (val) => {
+                // Helps with common formats like "13/02/2026, 22:57:55" or "2026-02-13 22:57:55"
+                return val.trim().replace(/[,]/g, '').replace(/\//g, '-');
+            };
+
+            const time1Str = cleanTime(document.getElementById('t1').value);
+            const time2Str = cleanTime(document.getElementById('t2').value);
+            const time1 = new Date(time1Str);
+            const time2 = new Date(time2Str);
 
             if (isNaN(l1) || isNaN(n1) || isNaN(l2) || isNaN(n2)) {
                 document.getElementById('meta-display').innerText = "Invalid coordinates.";
