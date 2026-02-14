@@ -383,6 +383,10 @@
             document.getElementById('lat2').value = lat2.toFixed(6);
             document.getElementById('lon2').value = lon2.toFixed(6);
 
+            const now = new Date();
+            const randomHours = Math.floor(Math.random() * 24) + 1;
+            const past = new Date(now.getTime() - (randomHours * 60 * 60 * 1000));
+
             const formatDate = (date) => {
                 const pad = (num) => String(num).padStart(2, '0');
                 const y = date.getFullYear();
